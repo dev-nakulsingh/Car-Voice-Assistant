@@ -30,5 +30,5 @@ A futuristic car control simulator that uses voice commands to interact with veh
 # Note
 - Works best in Chrome (Web Speech API support required)
 
-## 📸 Preview
-(Add screenshot here)
+# Preview
+
