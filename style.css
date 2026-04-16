@@ -1,0 +1,482 @@
+/* =============================================
+   ARIA — Car Voice Assistant Simulator
+   Aesthetic: Dark Cockpit / Automotive HUD
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  --bg:        #0a0d14;
+  --panel:     #0e1220;
+  --border:    #1a2240;
+  --accent:    #00dcc8;
+  --accent2:   #ff9020;
+  --red:       #ff3a3a;
+  --text:      #c8d8e8;
+  --dim:       #4a5a70;
+  --glow:      rgba(0,220,200,0.25);
+  --glow2:     rgba(255,144,32,0.2);
+  --font-hud:  'Orbitron', monospace;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+}
+
+/* ---- SCANLINE OVERLAY ---- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* ---- HEADER ---- */
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, #0a0f1c, #0e1420);
+  position: relative;
+}
+.hud-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+
+.hud-brand {
+  font-family: var(--font-hud);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+.hud-logo {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+.dim { color: var(--dim); font-weight: 400; font-size: 0.75rem; }
+
+.hud-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-hud);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.status-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent), 0 0 16px var(--glow);
+  animation: pulse 1s ease-in-out infinite;
+}
+.status-dot.responding {
+  background: var(--accent2);
+  box-shadow: 0 0 8px var(--accent2), 0 0 16px var(--glow2);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ---- LAYOUT ---- */
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: calc(100vh - 53px);
+}
+
+/* ---- PANELS ---- */
+.controls-panel, .car-panel {
+  padding: 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.controls-panel {
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, #0b0e1a 0%, #090c16 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.car-panel {
+  background: radial-gradient(ellipse at center bottom, #0a1525 0%, #060810 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-label {
+  font-family: var(--font-hud);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+/* ---- LISTEN BUTTON ---- */
+.listen-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-hud);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.listen-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+.listen-btn:hover::before,
+.listen-btn.active::before { transform: translateX(0); }
+.listen-btn:hover, .listen-btn.active { color: #000; }
+.listen-btn > * { position: relative; z-index: 1; }
+
+.listen-btn.active {
+  border-color: var(--red);
+  color: #000;
+  background: var(--red);
+}
+.listen-btn.active::before { background: var(--red); transform: translateX(0); }
+
+.mic-icon {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+}
+.mic-icon svg { width: 100%; height: 100%; }
+
+/* ---- WAVE BARS ---- */
+.wave-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 36px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.wave-container.active { opacity: 1; }
+
+.wave-bar {
+  width: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  height: 6px;
+  transition: height 0.1s;
+}
+.wave-container.active .wave-bar {
+  animation: wave 0.8s ease-in-out infinite;
+}
+.wave-bar:nth-child(1) { animation-delay: 0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.09s; }
+.wave-bar:nth-child(3) { animation-delay: 0.18s; }
+.wave-bar:nth-child(4) { animation-delay: 0.27s; }
+.wave-bar:nth-child(5) { animation-delay: 0.36s; }
+.wave-bar:nth-child(6) { animation-delay: 0.27s; }
+.wave-bar:nth-child(7) { animation-delay: 0.18s; }
+.wave-bar:nth-child(8) { animation-delay: 0.09s; }
+.wave-bar:nth-child(9) { animation-delay: 0s; }
+
+@keyframes wave {
+  0%, 100% { height: 5px; }
+  50% { height: 28px; }
+}
+
+/* ---- READOUTS ---- */
+.readout-block {
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  position: relative;
+  background: rgba(0,0,0,0.3);
+}
+.readout-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--accent);
+}
+.response-block::before { background: var(--accent2); }
+
+.readout-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.readout-text {
+  font-size: 0.85rem;
+  color: var(--text);
+  min-height: 40px;
+  line-height: 1.6;
+  transition: color 0.3s;
+}
+.readout-text.flash {
+  color: var(--accent);
+  animation: textFlash 0.4s ease;
+}
+.response-block .readout-text.flash { color: var(--accent2); }
+
+@keyframes textFlash {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- COMMAND CHIPS ---- */
+.command-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cmd-label {
+  font-family: var(--font-hud);
+  font-size: 0.58rem;
+  letter-spacing: 0.25em;
+  color: var(--dim);
+}
+.cmd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--dim);
+  background: rgba(0,0,0,0.2);
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---- STATE DISPLAY ---- */
+.state-display {
+  display: flex;
+  gap: 12px;
+}
+.state-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+.state-icon { font-size: 1.2rem; }
+.state-key {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+}
+.state-val {
+  font-family: var(--font-hud);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--dim);
+  transition: color 0.4s;
+  letter-spacing: 0.1em;
+}
+.state-val.open { color: var(--accent); }
+
+/* ---- CAR SCENE ---- */
+.car-scene {
+  width: 100%;
+  max-width: 560px;
+  position: relative;
+}
+
+#carSvg {
+  width: 100%;
+  filter: drop-shadow(0 0 20px rgba(0,220,200,0.1));
+}
+
+/* ---- ANIMATED PARTS ---- */
+
+/* Window: clips reveal from top when "open" */
+#windowGlass {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0px);
+}
+#windowGlass.open {
+  transform: translateY(38px);
+}
+
+/* Trunk: rotates open */
+#trunkGroup {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#trunkGroup.open {
+  transform: rotate(-38deg) !important;
+}
+
+/* ---- CAR LABELS ---- */
+.car-label {
+  position: absolute;
+  font-family: var(--font-hud);
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.4s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.car-label.active { color: var(--accent); }
+
+.label-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+}
+
+.window-label {
+  top: 28%;
+  left: 33%;
+}
+.trunk-label {
+  top: 18%;
+  right: 8%;
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* =============================================
+   ADDED COMMANDS — Lights, Horn, AC, Lock
+   (appended to original style, same aesthetic)
+   ============================================= */
+
+/* State display now wraps into grid for 5 items */
+.state-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.state-display .state-item {
+  flex: 1 1 calc(50% - 10px);
+  min-width: 100px;
+}
+
+/* New car labels positioning */
+.lights-label {
+  bottom: 38%;
+  left: 5%;
+}
+.ac-label {
+  bottom: 28%;
+  left: 35%;
+}
+.doors-label {
+  bottom: 18%;
+  left: 5%;
+}
+
+/* Headlight ON state — glow on SVG */
+#carSvg.lights-on #headlightGlowL {
+  rx: 22;
+  ry: 20;
+  fill: rgba(255,220,80,0.28) !important;
+}
+#carSvg.lights-on #headlightBeam {
+  rx: 60;
+  ry: 8;
+  fill: rgba(255,230,120,0.15) !important;
+}
+#carSvg.lights-on #taillightGlow {
+  rx: 20;
+  ry: 18;
+  fill: rgba(255,30,30,0.28) !important;
+}
+#carSvg.lights-on #headlightL {
+  fill: #ffe080 !important;
+  filter: drop-shadow(0 0 8px #ffe060);
+}
+
+/* Horn ripple keyframe */
+@keyframes hornPulse {
+  0%   { opacity: 0.9; transform: scale(0.6); }
+  100% { opacity: 0;   transform: scale(1.4); }
+}
+#hornRipple.honking {
+  opacity: 1 !important;
+  animation: hornPulse 0.7s ease-out forwards;
+}
+
+/* AC vent glow keyframe */
+@keyframes acBreeze {
+  0%,100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+#acVent.ac-on {
+  opacity: 1 !important;
+  animation: acBreeze 1.5s ease-in-out infinite;
+}
+
+/* Lock flash keyframe */
+@keyframes lockFlash {
+  0%   { opacity: 0.9; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+#lockFlash.flashing {
+  animation: lockFlash 0.55s ease-out forwards;
+}

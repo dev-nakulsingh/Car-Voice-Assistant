@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Car Voice Assistant Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="hud-header">
+    <div class="hud-brand">
+      <span class="hud-logo">◈</span>
+      <span>ARIA<span class="dim"> · Automotive Response Intelligence Assistant</span></span>
+    </div>
+    <div class="hud-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusLabel">STANDBY</span>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <!-- LEFT: Controls -->
+    <section class="controls-panel">
+
+      <div class="panel-label">VOICE CONTROL</div>
+
+      <button id="listenBtn" class="listen-btn" onclick="startListening()">
+        <span class="mic-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/>
+            <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8" y1="22" x2="16" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span id="btnLabel">START LISTENING</span>
+      </button>
+
+      <div class="wave-container" id="waveContainer">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+
+      <div class="readout-block">
+        <div class="readout-label">⬡ RECOGNIZED INPUT</div>
+        <div class="readout-text" id="recognizedText">Awaiting voice command…</div>
+      </div>
+
+      <div class="readout-block response-block">
+        <div class="readout-label">⬡ SYSTEM RESPONSE</div>
+        <div class="readout-text" id="responseText">System ready.</div>
+      </div>
+
+      <div class="command-grid">
+        <div class="cmd-label">AVAILABLE COMMANDS</div>
+        <div class="cmd-chips">
+          <span class="chip">"open window"</span>
+          <span class="chip">"close window"</span>
+          <span class="chip">"open trunk"</span>
+          <span class="chip">"close trunk"</span>
+          <span class="chip">"lights on"</span>
+          <span class="chip">"lights off"</span>
+          <span class="chip">"honk"</span>
+          <span class="chip">"AC on"</span>
+          <span class="chip">"AC off"</span>
+          <span class="chip">"lock doors"</span>
+          <span class="chip">"unlock doors"</span>
+        </div>
+      </div>
+
+      <div class="state-display">
+        <div class="state-item">
+          <span class="state-icon">🪟</span>
+          <div>
+            <div class="state-key">WINDOW</div>
+            <div class="state-val" id="windowState">CLOSED</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-icon">🚗</span>
+          <div>
+            <div class="state-key">TRUNK</div>
+            <div class="state-val" id="trunkState">CLOSED</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-icon">💡</span>
+          <div>
+            <div class="state-key">LIGHTS</div>
+            <div class="state-val" id="lightsState">OFF</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-icon">❄️</span>
+          <div>
+            <div class="state-key">AC</div>
+            <div class="state-val" id="acState">OFF</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-icon">🔒</span>
+          <div>
+            <div class="state-key">DOORS</div>
+            <div class="state-val" id="doorsState">LOCKED</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: Car Visualization -->
+    <section class="car-panel">
+      <div class="panel-label">VEHICLE VIEW</div>
+      <div class="car-scene">
+        <svg id="carSvg" viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- Ground reflection -->
+          <ellipse cx="250" cy="305" rx="180" ry="10" fill="rgba(0,200,180,0.07)"/>
+
+          <!-- Car body shadow -->
+          <ellipse cx="250" cy="298" rx="165" ry="8" fill="rgba(0,0,0,0.4)"/>
+
+          <!-- === CAR BODY === -->
+          <!-- Main body -->
+          <path d="M60 210 Q60 185 85 185 L415 185 Q440 185 440 210 L440 255 Q440 265 430 265 L70 265 Q60 265 60 255 Z"
+                fill="#1a1e2e" stroke="#2a3050" stroke-width="1.5"/>
+
+          <!-- Roof cabin -->
+          <path d="M145 185 Q165 135 195 125 L305 125 Q335 135 355 185 Z"
+                fill="#161a28" stroke="#2a3050" stroke-width="1.5"/>
+
+          <!-- Hood -->
+          <path d="M60 210 L85 185 L180 185 L185 205 L65 205 Z"
+                fill="#1e2235" stroke="#2a3050" stroke-width="1"/>
+
+          <!-- Trunk lid -->
+          <path d="M440 210 L415 185 L320 185 L315 205 L435 205 Z"
+                fill="#1e2235" stroke="#2a3050" stroke-width="1"/>
+
+          <!-- Windshield -->
+          <path d="M195 128 Q180 160 180 185 L320 185 Q320 160 305 128 Z"
+                fill="#0d2233" stroke="#1a3a50" stroke-width="1" opacity="0.9"/>
+
+          <!-- Rear window -->
+          <path d="M355 185 Q345 160 335 135 L310 125 L305 128 Q320 160 320 185 Z"
+                fill="#0d2233" stroke="#1a3a50" stroke-width="1" opacity="0.9"/>
+
+          <!-- Front window -->
+          <path d="M145 185 Q155 160 165 135 L190 125 L195 128 Q180 160 180 185 Z"
+                fill="#0d2233" stroke="#1a3a50" stroke-width="1" opacity="0.9"/>
+
+          <!-- === SIDE WINDOW (animated) === -->
+          <!-- Window frame -->
+          <path d="M200 185 L200 140 L300 140 L300 185 Z"
+                fill="#0d1a28" stroke="#1a3a50" stroke-width="1.5"/>
+          <!-- Window glass (slides down) -->
+          <clipPath id="windowClip">
+            <rect x="201" y="141" width="98" height="43"/>
+          </clipPath>
+          <rect id="windowGlass" x="201" y="141" width="98" height="43"
+                fill="#0a2a3f" stroke="none"/>
+          <!-- Window glare -->
+          <line x1="210" y1="145" x2="220" y2="182" stroke="rgba(100,200,255,0.15)" stroke-width="1.5"/>
+
+          <!-- === TRUNK (animated) === -->
+          <!-- Trunk lid pivot group -->
+          <g id="trunkGroup" style="transform-origin: 380px 185px; transform: rotate(0deg);">
+            <path d="M315 205 L435 205 L440 185 L415 185 L320 185 Z"
+                  fill="#232840" stroke="#2a3050" stroke-width="1.2"/>
+            <!-- Trunk accent line -->
+            <line x1="325" y1="195" x2="430" y2="195" stroke="#1a3a60" stroke-width="1"/>
+          </g>
+
+          <!-- === WHEELS === -->
+          <!-- Front wheel -->
+          <circle cx="130" cy="265" r="38" fill="#111420" stroke="#252d45" stroke-width="2"/>
+          <circle cx="130" cy="265" r="26" fill="#0e111c" stroke="#1e2840" stroke-width="1.5"/>
+          <circle cx="130" cy="265" r="10" fill="#1a2035" stroke="#2a3555" stroke-width="1.5"/>
+          <!-- Spokes -->
+          <line x1="130" y1="239" x2="130" y2="251" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="130" y1="279" x2="130" y2="291" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="104" y1="265" x2="116" y2="265" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="144" y1="265" x2="156" y2="265" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="112" y1="247" x2="120" y2="255" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="140" y1="275" x2="148" y2="283" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="148" y1="247" x2="140" y2="255" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="120" y1="275" x2="112" y2="283" stroke="#2a3555" stroke-width="2.5"/>
+
+          <!-- Rear wheel -->
+          <circle cx="370" cy="265" r="38" fill="#111420" stroke="#252d45" stroke-width="2"/>
+          <circle cx="370" cy="265" r="26" fill="#0e111c" stroke="#1e2840" stroke-width="1.5"/>
+          <circle cx="370" cy="265" r="10" fill="#1a2035" stroke="#2a3555" stroke-width="1.5"/>
+          <line x1="370" y1="239" x2="370" y2="251" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="370" y1="279" x2="370" y2="291" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="344" y1="265" x2="356" y2="265" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="384" y1="265" x2="396" y2="265" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="352" y1="247" x2="360" y2="255" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="380" y1="275" x2="388" y2="283" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="388" y1="247" x2="380" y2="255" stroke="#2a3555" stroke-width="2.5"/>
+          <line x1="360" y1="275" x2="352" y2="283" stroke="#2a3555" stroke-width="2.5"/>
+
+          <!-- Headlight -->
+          <path d="M63 210 L85 200 L85 220 Z" fill="#ff9020" opacity="0.9"/>
+          <ellipse id="headlightL" cx="85" cy="210" rx="10" ry="14" fill="#ffb040" opacity="0.6"
+                   style="transition:all 0.5s ease"/>
+          <!-- Headlight glow (off by default) -->
+          <ellipse id="headlightGlowL" cx="85" cy="210" rx="0" ry="0"
+                   fill="rgba(255,220,80,0)" style="transition:all 0.5s ease;filter:blur(4px)"/>
+          <!-- Headlight beam (off by default) -->
+          <ellipse id="headlightBeam" cx="50" cy="290" rx="0" ry="0"
+                   fill="rgba(255,230,120,0)" style="transition:all 0.5s ease"/>
+
+          <!-- Tail light -->
+          <ellipse cx="415" cy="210" rx="10" ry="14" fill="#ff2020" opacity="0.5"/>
+          <path d="M437 210 L415 200 L415 220 Z" fill="#ff3030" opacity="0.7"/>
+          <!-- Tail glow when lights on -->
+          <ellipse id="taillightGlow" cx="415" cy="210" rx="0" ry="0"
+                   fill="rgba(255,30,30,0)" style="transition:all 0.5s ease;filter:blur(3px)"/>
+
+          <!-- AC vent indicator (hidden by default) -->
+          <g id="acVent" style="opacity:0;transition:opacity 0.5s ease">
+            <rect x="205" y="195" width="12" height="18" rx="2" fill="#1a3a50" stroke="#00dcc8" stroke-width="1"/>
+            <rect x="222" y="195" width="12" height="18" rx="2" fill="#1a3a50" stroke="#00dcc8" stroke-width="1"/>
+            <rect x="239" y="195" width="12" height="18" rx="2" fill="#1a3a50" stroke="#00dcc8" stroke-width="1"/>
+            <rect x="256" y="195" width="12" height="18" rx="2" fill="#1a3a50" stroke="#00dcc8" stroke-width="1"/>
+            <!-- AC glow overlay -->
+            <rect x="200" y="192" width="75" height="24" rx="3"
+                  fill="rgba(0,220,200,0.12)" stroke="none"/>
+          </g>
+
+          <!-- Horn ripple rings (hidden by default, shown on honk) -->
+          <g id="hornRipple" style="opacity:0">
+            <circle cx="75" cy="210" r="18" fill="none" stroke="rgba(255,200,60,0.7)" stroke-width="2"/>
+            <circle cx="75" cy="210" r="30" fill="none" stroke="rgba(255,200,60,0.4)" stroke-width="1.5"/>
+            <circle cx="75" cy="210" r="42" fill="none" stroke="rgba(255,200,60,0.2)" stroke-width="1"/>
+          </g>
+
+          <!-- Lock indicator overlay (hidden by default) -->
+          <g id="lockFlash" style="opacity:0;transition:opacity 0.3s ease">
+            <rect x="62" y="183" width="376" height="84" rx="4"
+                  fill="none" stroke="rgba(255,144,32,0.6)" stroke-width="2"
+                  stroke-dasharray="8 4"/>
+          </g>
+
+          <!-- Grill lines -->
+          <line x1="63" y1="218" x2="83" y2="218" stroke="#2a3555" stroke-width="1"/>
+          <line x1="63" y1="224" x2="83" y2="224" stroke="#2a3555" stroke-width="1"/>
+          <line x1="63" y1="230" x2="83" y2="230" stroke="#2a3555" stroke-width="1"/>
+
+          <!-- Door handle -->
+          <rect x="235" y="220" width="28" height="5" rx="2.5"
+                fill="#2a3555" stroke="#3a4570" stroke-width="1"/>
+
+          <!-- Body accent stripe -->
+          <line x1="90" y1="225" x2="410" y2="225" stroke="#1a2845" stroke-width="1"/>
+
+          <!-- Teal underglow -->
+          <ellipse cx="250" cy="270" rx="150" ry="5" fill="rgba(0,220,200,0.12)" filter="url(#glow)"/>
+
+          <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+        </svg>
+
+        <!-- Labels -->
+        <div class="car-label window-label" id="windowLabel">
+          <span class="label-dot"></span> WINDOW: CLOSED
+        </div>
+        <div class="car-label trunk-label" id="trunkLabel">
+          <span class="label-dot"></span> TRUNK: CLOSED
+        </div>
+        <div class="car-label lights-label" id="lightsLabel">
+          <span class="label-dot"></span> LIGHTS: OFF
+        </div>
+        <div class="car-label ac-label" id="acLabel">
+          <span class="label-dot"></span> AC: OFF
+        </div>
+        <div class="car-label doors-label" id="doorsLabel">
+          <span class="label-dot"></span> DOORS: LOCKED
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
